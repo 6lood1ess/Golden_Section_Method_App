@@ -20,8 +20,11 @@ namespace GoldenSectionMethodApp.Forms {
     private TextBox _txtB;
     private TextBox _txtE;
 
+    private RadioButton _rbMinimum;
+    private RadioButton _rbMaximum;
+
     private DataGridView _gridSteps;
-    private Label _lblMinimumValue;
+    private Label _lblExtremumValue;
     private Chart _chart;
 
     private Label _lblResultHeader;
@@ -50,6 +53,9 @@ namespace GoldenSectionMethodApp.Forms {
     public string BText => _txtB.Text;
     public string EpsilonText => _txtE.Text;
 
+    public ExtremumType SelectedExtremumType =>
+      _rbMaximum.Checked ? ExtremumType.Maximum : ExtremumType.Minimum;
+
     public event EventHandler CalculateRequested;
     public event EventHandler ClearRequested;
     public event EventHandler BuildChartRequested;
@@ -70,10 +76,14 @@ namespace GoldenSectionMethodApp.Forms {
       }
     }
 
-    public void ShowMinimum(string minimumText) {
-      string[] lines = minimumText.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+    public void ShowExtremum(string extremumText, ExtremumType extremumType) {
+      _lblResultHeader.Text = extremumType == ExtremumType.Minimum
+        ? "Найденный минимум"
+        : "Найденный максимум";
 
-      _lblMinimumValue.Text = lines.Length > 0 ? lines[0] : string.Empty;
+      string[] lines = extremumText.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+
+      _lblExtremumValue.Text = lines.Length > 0 ? lines[0] : string.Empty;
 
       string iterationsHeader = "Итерации";
 
@@ -93,13 +103,16 @@ namespace GoldenSectionMethodApp.Forms {
       _gridSteps.Rows.Clear();
     }
 
-    public void ClearMinimum() {
-      _lblMinimumValue.Text = "—";
+    public void ClearExtremum() {
+      _lblExtremumValue.Text = "—";
       _lblTableHeader.Text = "Итерации";
+      _lblResultHeader.Text = SelectedExtremumType == ExtremumType.Minimum
+        ? "Найденный минимум"
+        : "Найденный максимум";
     }
 
-    public void BuildChart(string expression, double a, double b, double? minimum) {
-      _chartBuilder.Build(_chart, expression, a, b, minimum);
+    public void BuildChart(string expression, double a, double b, double? extremum, ExtremumType extremumType) {
+      _chartBuilder.Build(_chart, expression, a, b, extremum, extremumType);
     }
 
     public void ShowError(string message) {
@@ -147,7 +160,7 @@ namespace GoldenSectionMethodApp.Forms {
         Text = "Метод золотого сечения",
         Font = AppTheme.FontTitle,
         ForeColor = Color.White,
-        Location = new Point(60, top),
+        Location = new Point(57, top),
         AutoSize = true
       };
       _sidebar.Controls.Add(lblTitle);
@@ -155,10 +168,10 @@ namespace GoldenSectionMethodApp.Forms {
       top += 30;
 
       var lblSub = new Label {
-        Text = "Поиск минимума f(x) на [a, b]",
+        Text = "Поиск экстремума f(x) на [a, b]",
         Font = AppTheme.FontRegular,
         ForeColor = AppTheme.SidebarText,
-        Location = new Point(72, top),
+        Location = new Point(89, top),
         AutoSize = true
       };
       _sidebar.Controls.Add(lblSub);
@@ -177,7 +190,39 @@ namespace GoldenSectionMethodApp.Forms {
       _txtE = CreateSidebarField("Точность e", ref top);
       _txtE.Text = "0,0001";
 
-      top += 12;
+      top += 4;
+
+      var lblExtremum = new Label {
+        Text = "Искать",
+        Font = AppTheme.FontBold,
+        ForeColor = AppTheme.SidebarText,
+        Location = new Point(22, top),
+        AutoSize = true
+      };
+      _sidebar.Controls.Add(lblExtremum);
+
+      top += 24;
+
+      _rbMinimum = new RadioButton {
+        Text = "Минимум",
+        Font = AppTheme.FontRegular,
+        ForeColor = AppTheme.SidebarText,
+        Location = new Point(80, top),
+        AutoSize = true,
+        Checked = true
+      };
+      _sidebar.Controls.Add(_rbMinimum);
+
+      _rbMaximum = new RadioButton {
+        Text = "Максимум",
+        Font = AppTheme.FontRegular,
+        ForeColor = AppTheme.SidebarText,
+        Location = new Point(196, top),
+        AutoSize = true
+      };
+      _sidebar.Controls.Add(_rbMaximum);
+
+      top += 34;
 
       _btnCalculate = CreateSidebarButton("Рассчитать", AppTheme.Accent, ref top);
       _btnCalculate.Click += (s, e) => CalculateRequested?.Invoke(this, EventArgs.Empty);
@@ -313,7 +358,7 @@ namespace GoldenSectionMethodApp.Forms {
         TextAlign = ContentAlignment.MiddleLeft
       };
 
-      _lblMinimumValue = new Label {
+      _lblExtremumValue = new Label {
         Text = "—",
         Font = new GdiFont("Consolas", 14f, FontStyle.Bold),
         ForeColor = AppTheme.Success,
@@ -322,7 +367,7 @@ namespace GoldenSectionMethodApp.Forms {
         TextAlign = ContentAlignment.MiddleLeft
       };
 
-      resultPanel.Controls.Add(_lblMinimumValue);
+      resultPanel.Controls.Add(_lblExtremumValue);
       resultPanel.Controls.Add(_lblResultHeader);
 
       _tableCard.Controls.Add(_gridSteps);

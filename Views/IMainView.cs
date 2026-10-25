@@ -8,12 +8,14 @@ namespace GoldenSectionMethodApp.Views {
     string BText { get; }
     string EpsilonText { get; }
 
-    void ShowSteps(IEnumerable<GoldenSectionStep> steps);
-    void ShowMinimum(string minimumText);
-    void ClearSteps();
-    void ClearMinimum();
+    ExtremumType SelectedExtremumType { get; }
 
-    void BuildChart(string expression, double a, double b, double? minimum);
+    void ShowSteps(IEnumerable<GoldenSectionStep> steps);
+    void ShowExtremum(string extremumText, ExtremumType extremumType);
+    void ClearSteps();
+    void ClearExtremum();
+
+    void BuildChart(string expression, double a, double b, double? extremum, ExtremumType extremumType);
 
     void ShowError(string message);
     void ShowInfo(string message);

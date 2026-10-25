@@ -1,7 +1,7 @@
 ﻿using GoldenSectionMethodApp.Models;
 
 namespace GoldenSectionMethodApp.Services {
-  // Реализация метода золотого сечения для поиска минимума унимодальной функции
+  // Реализация метода золотого сечения для поиска мин. и макс. унимодальной функции
   public class GoldenSectionSolver : IGoldenSectionSolver {
     private const int MaxIterations = 10_000;
     private const double Tau = 0.6180339887498949; // (sqrt(5) - 1) / 2
@@ -29,16 +29,18 @@ namespace GoldenSectionMethodApp.Services {
 
       string expr = parameters.Function.Expression;
 
+      double sign = parameters.ExtremumType == ExtremumType.Minimum ? 1.0 : -1.0;
+
       double left = parameters.A;
       double right = parameters.B;
 
       double x1 = right - Tau * (right - left);
       double x2 = left + Tau * (right - left);
 
-      double f1 = _evaluator.Evaluate(expr, x1);
-      double f2 = _evaluator.Evaluate(expr, x2);
+      double f1 = sign * _evaluator.Evaluate(expr, x1);
+      double f2 = sign * _evaluator.Evaluate(expr, x2);
 
-      var result = new GoldenSectionResult();
+      var result = new GoldenSectionResult { ExtremumType = parameters.ExtremumType};
       int n = 1;
 
       while ((right - left) > parameters.Epsilon && n <= MaxIterations) {
@@ -48,29 +50,29 @@ namespace GoldenSectionMethodApp.Services {
           B = right,
           X1 = x1,
           X2 = x2,
-          F1 = f1,
-          F2 = f2
+          F1 = _evaluator.Evaluate(expr, x1),
+          F2 = _evaluator.Evaluate(expr, x2)
         });
 
         if (f1 < f2) {
-          // Минимум в левой части - отбрасывает правую
+          // Экстремум в левой части - отбрасывает правую
           right = x2;
 
           x2 = x1;
           f2 = f1;
 
           x1 = right - Tau * (right - left);
-          f1 = _evaluator.Evaluate(expr, x1);
+          f1 = sign * _evaluator.Evaluate(expr, x1);
 
         } else {
-          // Минимум в правой части - отбрасывает левую
+          // Экстремум в правой части - отбрасывает левую
           left = x1;
 
           x1 = x2;
           f1 = f2;
 
           x2 = left + Tau * (right - left);
-          f2 = _evaluator.Evaluate(expr, x2);
+          f2 = sign * _evaluator.Evaluate(expr, x2);
         }
 
         n++;
@@ -80,8 +82,8 @@ namespace GoldenSectionMethodApp.Services {
         throw new InvalidOperationException("Превышено максимальное число итераций");
       }
 
-      result.Minimum = (left + right) / 2.0;
-      result.FunctionValueAtMinimum = _evaluator.Evaluate(expr, result.Minimum);
+      result.Extremum = (left + right) / 2.0;
+      result.FunctionValueAtExtremum = _evaluator.Evaluate(expr, result.Extremum);
       result.IterationsCount = result.Steps.Count;
 
       return result;

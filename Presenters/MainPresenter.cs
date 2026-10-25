@@ -42,19 +42,19 @@ namespace GoldenSectionMethodApp.Presenters {
 
       try {
         var parameters = new GoldenSectionParameters(
-          new FunctionDefinition(_view.FunctionExpression), a, b, eps);
+          new FunctionDefinition(_view.FunctionExpression), a, b, eps, _view.SelectedExtremumType);
 
         var result = _solver.Solve(parameters);
 
         _view.ClearSteps();
         _view.ShowSteps(result.Steps);
 
-        string minimumText =
-          $"x* = {result.Minimum:F6}    f(x*) = {result.FunctionValueAtMinimum:F6}{Environment.NewLine}" +
+        string extremumText =
+          $"x* = {result.Extremum:F6}    f(x*) = {result.FunctionValueAtExtremum:F6}{Environment.NewLine}" +
           $"Итераций: {result.IterationsCount}";
 
-        _view.ShowMinimum(minimumText);
-        _view.BuildChart(_view.FunctionExpression, a, b, result.Minimum);
+        _view.ShowExtremum(extremumText, result.ExtremumType);
+        _view.BuildChart(_view.FunctionExpression, a, b, result.Extremum, result.ExtremumType);
 
       } catch (Exception ex) {
         _view.ShowError(ex.Message);
@@ -77,7 +77,7 @@ namespace GoldenSectionMethodApp.Presenters {
       NumberParser.TryParse(_view.BText, out double b);
 
       try {
-        _view.BuildChart(_view.FunctionExpression, a, b, null);
+        _view.BuildChart(_view.FunctionExpression, a, b, null, _view.SelectedExtremumType);
 
       } catch (Exception ex) {
         _view.ShowError($"Ошибка построения графика: {ex.Message}");
@@ -86,8 +86,8 @@ namespace GoldenSectionMethodApp.Presenters {
 
     private void OnClearRequested(object sender, EventArgs e) {
       _view.ClearSteps();
-      _view.ClearMinimum();
-      _view.BuildChart(_view.FunctionExpression, 0, 1, null);
+      _view.ClearExtremum();
+      _view.BuildChart(_view.FunctionExpression, 0, 1, null, _view.SelectedExtremumType);
     }
   }
 }

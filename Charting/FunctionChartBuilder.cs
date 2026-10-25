@@ -1,4 +1,5 @@
 ﻿using System.Windows.Forms.DataVisualization.Charting;
+using GoldenSectionMethodApp.Models;
 using GoldenSectionMethodApp.Services;
 using GoldenSectionMethodApp.Theme;
 
@@ -7,13 +8,16 @@ namespace GoldenSectionMethodApp.Charting {
     private const int PointCount = 600;
     private const double YRangeFactor = 1.4;
 
+    private static readonly Color MinimumColor = AppTheme.Success;
+    private static readonly Color MaximumColor = Color.FromArgb(230, 140, 0);
+
     private readonly IFunctionEvaluator _evaluator;
 
     public FunctionChartBuilder(IFunctionEvaluator evaluator) {
       _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
     }
 
-    public void Build(Chart chart, string expression, double a, double b, double? minimum) {
+    public void Build(Chart chart, string expression, double a, double b, double? extremum, ExtremumType extremumType) {
       if (chart == null) {
         throw new ArgumentNullException(nameof(chart));
       }
@@ -119,14 +123,17 @@ namespace GoldenSectionMethodApp.Charting {
 
       chart.Series.Add(functionSeries);
 
-      if (minimum.HasValue && minimum.Value >= a && minimum.Value <= b) {
-        double mx = minimum.Value;
+      if (extremum.HasValue && extremum.Value >= a && extremum.Value <= b) {
+        double mx = extremum.Value;
         double my = _evaluator.Evaluate(expression, mx);
 
-        var guideSeries = new Series("MinimumGuide") {
+        Color highlightColor = extremumType == ExtremumType.Minimum ? MinimumColor : MaximumColor;
+        string markerLabel = extremumType == ExtremumType.Minimum ? "min" : "max";
+
+        var guideSeries = new Series("ExtremumGuide") {
           ChartType = SeriesChartType.Line,
           BorderWidth = 1,
-          Color = AppTheme.Success,
+          Color = highlightColor,
           BorderDashStyle = ChartDashStyle.Dash,
           ChartArea = "MainArea",
           LegendText = "x*"
@@ -136,27 +143,27 @@ namespace GoldenSectionMethodApp.Charting {
         guideSeries.Points.AddXY(mx, yHigh);
         chart.Series.Add(guideSeries);
 
-        var minimumSeries = new Series("Minimum") {
+        var extremumSeries = new Series("Extremum") {
           ChartType = SeriesChartType.Point,
           MarkerStyle = MarkerStyle.Circle,
           MarkerSize = 12,
-          MarkerColor = AppTheme.Success,
+          MarkerColor = highlightColor,
           MarkerBorderColor = Color.White,
           MarkerBorderWidth = 2,
           ChartArea = "MainArea",
-          LegendText = $"x* = {mx:F4}"
+          LegendText = $"{markerLabel}: x* = {mx:F4}"
         };
 
-        minimumSeries.Points.AddXY(mx, my);
-        chart.Series.Add(minimumSeries);
+        extremumSeries.Points.AddXY(mx, my);
+        chart.Series.Add(extremumSeries);
 
-        minimumSeries.Points[0].Label = $"x* = {mx:F4}";
-        minimumSeries.Points[0].Font = new Font("Segoe UI", 8.5f, FontStyle.Bold);
-        minimumSeries.Points[0].LabelForeColor = AppTheme.Success;
-        minimumSeries.Points[0].LabelBackColor = Color.White;
-        minimumSeries.Points[0].LabelBorderColor = AppTheme.Success;
-        minimumSeries.Points[0].LabelBorderDashStyle = ChartDashStyle.Solid;
-        minimumSeries.Points[0].LabelBorderWidth = 1;
+        extremumSeries.Points[0].Label = $"x* = {mx:F4}";
+        extremumSeries.Points[0].Font = new Font("Segoe UI", 8.5f, FontStyle.Bold);
+        extremumSeries.Points[0].LabelForeColor = highlightColor;
+        extremumSeries.Points[0].LabelBackColor = Color.White;
+        extremumSeries.Points[0].LabelBorderColor = highlightColor;
+        extremumSeries.Points[0].LabelBorderDashStyle = ChartDashStyle.Solid;
+        extremumSeries.Points[0].LabelBorderWidth = 1;
       }
     }
   }
