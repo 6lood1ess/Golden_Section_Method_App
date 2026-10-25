@@ -10,10 +10,8 @@ namespace GoldenSectionMethodApp.Views {
 
     ExtremumType SelectedExtremumType { get; }
 
-    void ShowSteps(IEnumerable<GoldenSectionStep> steps);
-    void ShowExtremum(string extremumText, ExtremumType extremumType);
-    void ClearSteps();
-    void ClearExtremum();
+    void ShowResult(string extremumText, ExtremumType extremumType);
+    void ClearResult();
 
     void BuildChart(string expression, double a, double b, double? extremum, ExtremumType extremumType);
 

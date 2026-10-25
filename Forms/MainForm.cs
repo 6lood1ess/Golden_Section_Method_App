@@ -13,7 +13,7 @@ namespace GoldenSectionMethodApp.Forms {
     private Panel _sidebar;
     private Panel _workspace;
     private Panel _chartCard;
-    private Panel _tableCard;
+    private Panel _resultCard;
 
     private TextBox _txtFunction;
     private TextBox _txtA;
@@ -23,12 +23,9 @@ namespace GoldenSectionMethodApp.Forms {
     private RadioButton _rbMinimum;
     private RadioButton _rbMaximum;
 
-    private DataGridView _gridSteps;
-    private Label _lblExtremumValue;
     private Chart _chart;
-
     private Label _lblResultHeader;
-    private Label _lblTableHeader;
+    private Label _lblResultValue;
 
     private Button _btnCalculate;
     private Button _btnClear;
@@ -60,52 +57,27 @@ namespace GoldenSectionMethodApp.Forms {
     public event EventHandler ClearRequested;
     public event EventHandler BuildChartRequested;
 
-    public void ShowSteps(IEnumerable<GoldenSectionStep> steps) {
-      _gridSteps.Rows.Clear();
-
-      foreach (var s in steps) {
-        _gridSteps.Rows.Add(
-          s.Number,
-          s.A.ToString("F6"),
-          s.B.ToString("F6"),
-          s.X1.ToString("F6"),
-          s.X2.ToString("F6"),
-          s.F1.ToString("F6"),
-          s.F2.ToString("F6"),
-          s.IntervalLength.ToString("F6"));
-      }
-    }
-
-    public void ShowExtremum(string extremumText, ExtremumType extremumType) {
+    public void ShowResult(string resultText, ExtremumType extremumType) {
       _lblResultHeader.Text = extremumType == ExtremumType.Minimum
         ? "Найденный минимум"
         : "Найденный максимум";
 
-      string[] lines = extremumText.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+      string[] lines = resultText.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
-      _lblExtremumValue.Text = lines.Length > 0 ? lines[0] : string.Empty;
-
-      string iterationsHeader = "Итерации";
+      _lblResultValue.Text = lines.Length > 0 ? lines[0] : string.Empty;
 
       if (lines.Length > 1) {
         string[] parts = lines[1].Split(':');
 
         if (parts.Length > 1) {
-          string number = parts[1].Trim();
-          iterationsHeader = "Итерации: " + number;
+          string iterations = parts[1].Trim();
+          // _lblResultHeader.Text += $" - итераций: {iterations}";
         }
       }
-
-      _lblTableHeader.Text = iterationsHeader;
     }
 
-    public void ClearSteps() {
-      _gridSteps.Rows.Clear();
-    }
-
-    public void ClearExtremum() {
-      _lblExtremumValue.Text = "—";
-      _lblTableHeader.Text = "Итерации";
+    public void ClearResult() {
+      _lblResultValue.Text = "—";
       _lblResultHeader.Text = SelectedExtremumType == ExtremumType.Minimum
         ? "Найденный минимум"
         : "Найденный максимум";
@@ -127,8 +99,8 @@ namespace GoldenSectionMethodApp.Forms {
 
     private void BuildUi() {
       this.Text = "Метод золотого сечения";
-      this.ClientSize = new Size(1240, 760);
-      this.MinimumSize = new Size(1100, 680);
+      this.ClientSize = new Size(760, 760);
+      this.MinimumSize = new Size(760, 760);
       this.StartPosition = FormStartPosition.CenterScreen;
       this.BackColor = AppTheme.Background;
       this.Font = AppTheme.FontRegular;
@@ -286,100 +258,6 @@ namespace GoldenSectionMethodApp.Forms {
     }
 
     private void BuildWorkspace() {
-      _tableCard = CreateCard();
-      _tableCard.Dock = DockStyle.Left;
-      _tableCard.Width = 480;
-      _tableCard.Padding = new Padding(16, 12, 16, 16);
-
-      _lblTableHeader = new Label {
-        Text = "Итерации",
-        Font = AppTheme.FontHeader,
-        ForeColor = AppTheme.TextPrimary,
-        Dock = DockStyle.Top,
-        Height = 28,
-        TextAlign = ContentAlignment.MiddleLeft
-      };
-
-      _gridSteps = new DataGridView {
-        Dock = DockStyle.Fill,
-        ReadOnly = true,
-        AllowUserToAddRows = false,
-        AllowUserToDeleteRows = false,
-        AllowUserToResizeRows = false,
-        RowHeadersVisible = false,
-        AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-        SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-        BackgroundColor = AppTheme.Card,
-        BorderStyle = BorderStyle.None,
-        GridColor = AppTheme.Border,
-        Font = new GdiFont("Consolas", 6.25f, FontStyle.Regular),
-        ScrollBars = ScrollBars.Vertical,
-        ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle {
-          BackColor = Color.FromArgb(240, 242, 246),
-          ForeColor = AppTheme.TextPrimary,
-          Font = new Font("Segoe UI", 6.75f, FontStyle.Bold),
-          SelectionBackColor = Color.FromArgb(240, 242, 246),
-          SelectionForeColor = AppTheme.TextPrimary,
-          Alignment = DataGridViewContentAlignment.MiddleCenter
-        },
-        DefaultCellStyle = new DataGridViewCellStyle {
-          SelectionBackColor = Color.FromArgb(220, 235, 250),
-          SelectionForeColor = AppTheme.TextPrimary,
-          Alignment = DataGridViewContentAlignment.MiddleCenter,
-          Padding = new Padding(2)
-        },
-        EnableHeadersVisualStyles = false
-      };
-
-      _gridSteps.Columns.Add("n", "n");
-      _gridSteps.Columns.Add("a_n", "a_n");
-      _gridSteps.Columns.Add("b_n", "b_n");
-      _gridSteps.Columns.Add("x1", "x1");
-      _gridSteps.Columns.Add("x2", "x2");
-      _gridSteps.Columns.Add("f1", "f(x1)");
-      _gridSteps.Columns.Add("f2", "f(x2)");
-      _gridSteps.Columns.Add("diff", "b_n - a_n");
-      _gridSteps.ColumnHeadersHeight = 32;
-      _gridSteps.RowTemplate.Height = 26;
-
-      var resultPanel = new Panel {
-        Dock = DockStyle.Bottom,
-        Height = 76,
-        BackColor = AppTheme.Card,
-        Padding = new Padding(0, 8, 0, 0)
-      };
-
-      _lblResultHeader = new Label {
-        Text = "Найденный минимум",
-        Font = AppTheme.FontBold,
-        ForeColor = AppTheme.TextSecondary,
-        Dock = DockStyle.Top,
-        Height = 22,
-        TextAlign = ContentAlignment.MiddleLeft
-      };
-
-      _lblExtremumValue = new Label {
-        Text = "—",
-        Font = new GdiFont("Consolas", 14f, FontStyle.Bold),
-        ForeColor = AppTheme.Success,
-        Dock = DockStyle.Top,
-        Height = 34,
-        TextAlign = ContentAlignment.MiddleLeft
-      };
-
-      resultPanel.Controls.Add(_lblExtremumValue);
-      resultPanel.Controls.Add(_lblResultHeader);
-
-      _tableCard.Controls.Add(_gridSteps);
-      _tableCard.Controls.Add(_lblTableHeader);
-      _tableCard.Controls.Add(resultPanel);
-
-      var midSpacer = new Panel {
-        Dock = DockStyle.Left,
-        Width = 16,
-        BackColor = AppTheme.Background
-      };
-
       _chartCard = CreateCard();
       _chartCard.Dock = DockStyle.Left;
       _chartCard.Width = 400;
@@ -415,9 +293,34 @@ namespace GoldenSectionMethodApp.Forms {
       _chartCard.Controls.Add(_chart);
       _chartCard.Controls.Add(lblChartHeader);
 
-      _workspace.Controls.Add(_tableCard);
-      _workspace.Controls.Add(midSpacer);
+      _resultCard = CreateCard();
+      _resultCard.Dock = DockStyle.Bottom;
+      _resultCard.Height = 90;
+      _resultCard.Padding = new Padding(16, 10, 16, 12);
+
+      _lblResultHeader = new Label {
+        Text = "Найденный минимум",
+        Font = AppTheme.FontBold,
+        ForeColor = AppTheme.TextSecondary,
+        Dock = DockStyle.Top,
+        Height = 22,
+        TextAlign = ContentAlignment.MiddleLeft
+      };
+
+      _lblResultValue = new Label {
+        Text = "—",
+        Font = new GdiFont("Consolas", 14f, FontStyle.Bold),
+        ForeColor = AppTheme.Success,
+        Dock = DockStyle.Top,
+        Height = 34,
+        TextAlign = ContentAlignment.MiddleLeft
+      };
+
+      _resultCard.Controls.Add(_lblResultValue);
+      _resultCard.Controls.Add(_lblResultHeader);
+
       _workspace.Controls.Add(_chartCard);
+      _workspace.Controls.Add(_resultCard);
     }
 
     private Panel CreateCard() {

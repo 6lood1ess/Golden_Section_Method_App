@@ -44,16 +44,6 @@ namespace GoldenSectionMethodApp.Services {
       int n = 1;
 
       while ((right - left) > parameters.Epsilon && n <= MaxIterations) {
-        result.Steps.Add(new GoldenSectionStep {
-          Number = n,
-          A = left,
-          B = right,
-          X1 = x1,
-          X2 = x2,
-          F1 = _evaluator.Evaluate(expr, x1),
-          F2 = _evaluator.Evaluate(expr, x2)
-        });
-
         if (f1 < f2) {
           // Экстремум в левой части - отбрасывает правую
           right = x2;
@@ -84,7 +74,7 @@ namespace GoldenSectionMethodApp.Services {
 
       result.Extremum = (left + right) / 2.0;
       result.FunctionValueAtExtremum = _evaluator.Evaluate(expr, result.Extremum);
-      result.IterationsCount = result.Steps.Count;
+      result.IterationsCount = n - 1;
 
       return result;
     }

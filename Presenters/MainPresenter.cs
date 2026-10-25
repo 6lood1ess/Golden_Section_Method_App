@@ -46,14 +46,11 @@ namespace GoldenSectionMethodApp.Presenters {
 
         var result = _solver.Solve(parameters);
 
-        _view.ClearSteps();
-        _view.ShowSteps(result.Steps);
-
         string extremumText =
           $"x* = {result.Extremum:F6}    f(x*) = {result.FunctionValueAtExtremum:F6}{Environment.NewLine}" +
           $"Итераций: {result.IterationsCount}";
 
-        _view.ShowExtremum(extremumText, result.ExtremumType);
+        _view.ShowResult(extremumText, result.ExtremumType);
         _view.BuildChart(_view.FunctionExpression, a, b, result.Extremum, result.ExtremumType);
 
       } catch (Exception ex) {
@@ -85,8 +82,7 @@ namespace GoldenSectionMethodApp.Presenters {
     }
 
     private void OnClearRequested(object sender, EventArgs e) {
-      _view.ClearSteps();
-      _view.ClearExtremum();
+      _view.ClearResult();
       _view.BuildChart(_view.FunctionExpression, 0, 1, null, _view.SelectedExtremumType);
     }
   }
